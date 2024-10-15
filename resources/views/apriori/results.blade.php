@@ -23,7 +23,7 @@
             @foreach ($itemSets as $index => $itemSet)
                 <tr>
                     <td>Transaksi {{ $index + 1 }}</td>
-                    <td>{{ implode(', ', $itemSet) }}</td>
+                    <td>{{ implode(', ', array_column($itemSet, 'name')) }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -31,6 +31,7 @@
 
     <!-- Tampilkan Hasil Algoritma Apriori -->
     <h2>Hasil Algoritma Apriori</h2>
+
     <h2>1-Itemsets</h2>
     <table border="1">
         <thead>
@@ -84,6 +85,30 @@
         </thead>
         <tbody>
             @foreach ($results['3-itemsets'] as $itemset)
+                <tr>
+                    <td>{{ implode(', ', $itemset['itemset']) }}</td>
+                    <td>{{ $itemset['support'] }}</td>
+                    <td>
+                        @foreach ($itemset['confidence'] as $conf)
+                            {{ $conf }} <br>
+                        @endforeach
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <h2>4-Itemsets</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Itemset</th>
+                <th>Support</th>
+                <th>Confidence</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($results['4-itemsets'] as $itemset)
                 <tr>
                     <td>{{ implode(', ', $itemset['itemset']) }}</td>
                     <td>{{ $itemset['support'] }}</td>

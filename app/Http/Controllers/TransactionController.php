@@ -10,7 +10,8 @@ class TransactionController extends Controller
     // Menampilkan daftar transaksi
     public function index()
     {
-        $transactions = Transaction::all();
+        $transactions = Transaction::with('menu')->get();
+        
         return view('transactions.index', compact('transactions'));
     }
 

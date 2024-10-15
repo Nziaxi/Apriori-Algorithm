@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Transaction extends Model
 {
@@ -16,4 +16,10 @@ class Transaction extends Model
         'quantity',         // Kuantitas
         'total_price',      // Total harga
     ];
+
+    // Mendefinisikan relasi dengan model Menu
+    public function menu()
+    {
+        return $this->belongsTo(Menu::class, 'menu_code', 'code');
+    }
 }

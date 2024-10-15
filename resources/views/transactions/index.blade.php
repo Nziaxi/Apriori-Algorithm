@@ -25,6 +25,7 @@
                 <tr>
                     <th>Tanggal Transaksi</th>
                     <th>Kode Menu</th>
+                    <th>Nama Menu</th>
                     <th>Kuantitas</th>
                     <th>Total Harga</th>
                     <th>Aksi</th>
@@ -35,6 +36,7 @@
                     <tr>
                         <td>{{ $transaction->transaction_date }}</td>
                         <td>{{ $transaction->menu_code }}</td>
+                        <td>{{ $transaction->menu ? $transaction->menu->name : 'Tidak Ditemukan' }}</td>
                         <td>{{ $transaction->quantity }}</td>
                         <td>{{ number_format($transaction->total_price, 2) }}</td>
                         <td>
