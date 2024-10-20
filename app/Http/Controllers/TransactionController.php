@@ -2,23 +2,37 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Menu;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
     // Menampilkan daftar transaksi
-    public function index()
+    public function index(Request $request)
     {
-        $transactions = Transaction::with('menu')->get();
+        // Ambil parameter sorting dari query
+        $sortColumn = $request->input('sort_by', 'transaction_date');
+        $sortDirection = $request->input('sort_direction', 'asc');
+
+        $perPage = $request->input('per_page', 10);
+
+        // Melakukan join dengan table menu
+        $transactions = \App\Models\Transaction::with('menu')
+            ->join('menus', 'transactions.menu_code', '=', 'menus.code')
+            ->orderBy($sortColumn === 'name' ? 'menus.name' : $sortColumn, $sortDirection)
+            ->select('transactions.*')
+            ->paginate($perPage);
         
-        return view('transactions.index', compact('transactions'));
+        return view('pages.transactions.index', compact('transactions', 'sortColumn', 'sortDirection'));
     }
 
     // Menampilkan form untuk menambah transaksi
     public function create()
     {
-        return view('transactions.create');
+        $menus = Menu::all();
+
+        return view('pages.transactions.create', compact('menus'));
     }
 
     // Menyimpan transaksi baru
@@ -33,14 +47,20 @@ class TransactionController extends Controller
 
         Transaction::create($request->all());
 
-        return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil ditambahkan!');
+        // Mengatur session untuk pesan sukses
+        session()->flash('success', 'Data berhasil ditambahkan!');
+        session()->flash('action', 'add');
+
+        return redirect()->route('transactions.index');
     }
 
     // Menampilkan form untuk mengedit transaksi
     public function edit($id)
     {
         $transaction = Transaction::findOrFail($id);
-        return view('transactions.edit', compact('transaction'));
+        $menus = Menu::all();
+
+        return view('pages.transactions.edit', compact('transaction', 'menus'));
     }
 
     // Memperbarui transaksi
@@ -56,7 +76,11 @@ class TransactionController extends Controller
         $transaction = Transaction::findOrFail($id);
         $transaction->update($request->all());
 
-        return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil diperbarui!');
+        // Mengatur session untuk pesan sukses
+        session()->flash('success', 'Data berhasil diperbarui!');
+        session()->flash('action', 'edit');
+
+        return redirect()->route('transactions.index');
     }
 
     // Menghapus transaksi
@@ -65,6 +89,10 @@ class TransactionController extends Controller
         $transaction = Transaction::findOrFail($id);
         $transaction->delete();
 
-        return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil dihapus!');
+        // Mengatur session untuk pesan sukses
+        session()->flash('success', 'Data berhasil dihapus!');
+        session()->flash('action', 'delete');
+
+        return redirect()->route('transactions.index');
     }
 }

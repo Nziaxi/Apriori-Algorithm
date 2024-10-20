@@ -1,8 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\AprioriController;
+use App\Http\Controllers\MenuServiceController;
 use App\Http\Controllers\TransactionController;
 
 /*
@@ -20,13 +22,16 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/home', [HomeController::class, 'index'])->name('home.index');
+
 Route::resource('menus', MenuController::class);
-Route::get('/select-menu', [MenuController::class, 'selectMenu']);
-Route::post('/validate-menu', [MenuController::class, 'validateMenu']);
-Route::post('/submit-order', [MenuController::class, 'submitOrder']);
-Route::post('/confirm-order', [MenuController::class, 'confirmOrder'])->name('confirm.order');
+
+Route::get('/select-menu', [MenuServiceController::class, 'selectMenu'])->name('menu-services.index');
+Route::post('/validate-menu', [MenuServiceController::class, 'validateMenu']);
+Route::post('/submit-order', [MenuServiceController::class, 'submitOrder']);
+Route::post('/confirm-order', [MenuServiceController::class, 'confirmOrder'])->name('confirm.order');
 
 Route::resource('transactions', TransactionController::class);
 
-Route::get('/apriori', [AprioriController::class, 'index']);
+Route::get('/apriori', [AprioriController::class, 'index'])->name('apriori.index');
 Route::post('/apriori', [AprioriController::class, 'process']);
