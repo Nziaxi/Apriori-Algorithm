@@ -1,9 +1,8 @@
 <aside id="sidebar" class="sidebar">
-
     <ul class="sidebar-nav" id="sidebar-nav">
-
         <li class="nav-item">
-            <a class="nav-link collapsed" href="{{ route('home.index') }}">
+            <a class="nav-link {{ Route::currentRouteName() == 'home.index' ? 'active' : 'collapsed' }}"
+                href="{{ route('home.index') }}">
                 <i class="bi bi-grid"></i>
                 <span>Beranda</span>
             </a>
@@ -27,7 +26,8 @@
         </li><!-- End Transaction Nav -->
 
         <li class="nav-item">
-            <a class="nav-link collapsed" href="#">
+            <a class="nav-link {{ Route::currentRouteName() == 'users.index' ? 'active' : 'collapsed' }}"
+                href="{{ url('/users') }}">
                 <i class="ri-group-line"></i>
                 <span>Pengguna</span>
             </a>
@@ -35,7 +35,8 @@
 
         <li class="nav-heading">Generate</li>
         <li class="nav-item">
-            <a class="nav-link collapsed" href="{{ route('apriori.index') }}">
+            <a class="nav-link {{ Route::currentRouteName() == 'apriori.index' ? 'active' : 'collapsed' }}"
+                href="{{ route('apriori.index') }}">
                 <i class="ri-ai-generate"></i>
                 <span>Paket Menu</span>
             </a>
@@ -43,12 +44,11 @@
 
         <li class="nav-heading">Layanan</li>
         <li class="nav-item">
-            <a class="nav-link collapsed" href="{{ route('menu-services.index') }}">
+            <a class="nav-link {{ Route::currentRouteName() == 'menu-services.index' ? 'active' : 'collapsed' }}"
+                href="{{ route('menu-services.index') }}">
                 <i class="ri-survey-line"></i>
                 <span>Pilih Menu</span>
             </a>
         </li><!-- End Menu Services Nav -->
-
     </ul>
-
 </aside>

@@ -11,14 +11,14 @@
 @section('content')
     <section class="section">
         <div class="row">
-
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <h5 class="card-title">Data Menu</h5>
                         <div class="d-flex align-items-center gap-1">
                             <a href="{{ route('menus.create') }}" class="btn btn-primary btn-sm">Tambah Data</a>
-                            <a href="#" class="btn btn-success btn-sm">Import</a>
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#importModal">Import</button>
                             <a href="#" class="btn btn-secondary btn-sm">Print</a>
                         </div>
                     </div>
@@ -98,7 +98,7 @@
                                             <button type="button" class="btn btn-danger" data-bs-toggle="modal"
                                                 data-bs-target="#deleteModal{{ $menu->id }}">Hapus</button>
 
-                                            <!-- Modal Hapus -->
+                                            {{-- Delete Modal --}}
                                             <div class="modal fade" id="deleteModal{{ $menu->id }}" tabindex="-1">
                                                 <div class="modal-dialog modal-dialog-centered">
                                                     <div class="modal-content">
@@ -113,7 +113,7 @@
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">Tutup</button>
+                                                                data-bs-dismiss="modal">Batal</button>
                                                             <form action="{{ route('menus.destroy', $menu->id) }}"
                                                                 method="POST" style="display:inline;">
                                                                 @csrf
@@ -184,7 +184,32 @@
 
                 </div>
             </div>
-
         </div>
+
+        {{-- Import Modal --}}
+        <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Data Menu</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="#" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Pilih file Excel</label>
+                                <input class="form-control" type="file" id="file" name="file" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-success">Import</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </section>
 @endsection

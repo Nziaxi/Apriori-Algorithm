@@ -47,7 +47,9 @@
             <h1>@yield('title')</h1>
             <nav>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Beranda</a></li>
+                    @if (!request()->routeIs('home.index'))
+                        <li class="breadcrumb-item"><a href="{{ route('home.index') }}">Beranda</a></li>
+                    @endif
                     @yield('breadcrumb')
                     {{-- <li class="breadcrumb-item">Tables</li>
                     <li class="breadcrumb-item active">Data</li> --}}
