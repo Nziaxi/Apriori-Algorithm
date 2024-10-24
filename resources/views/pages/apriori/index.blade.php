@@ -52,6 +52,15 @@
                 <div class="card-body">
                     <h5 class="card-title">Data Transaksi</h5>
 
+                    <form method="GET" action="{{ route('apriori.index') }}" class="mb-3">
+                        <label for="perPage">Tampilkan entri: </label>
+                        <select name="per_page" id="perPage" onchange="this.form.submit()">
+                            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        </select>
+                    </form>
+
                     <table class="table table-bordered">
                         <thead>
                             <tr>
@@ -60,20 +69,73 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @if (empty($itemSets))
+                            @if (empty($transactionSets))
                                 <tr>
                                     <td colspan="2" class="text-center">Data tidak ditemukan.</td>
                                 </tr>
                             @else
-                                @foreach ($itemSets as $index => $itemSet)
+                                @foreach ($transactionSets as $itemSet)
                                     <tr>
-                                        <td>{{ $itemSet['date'] }}</td>
-                                        <td>{{ implode(', ', array_column($itemSet['items'], 'name')) }}</td>
+                                        <td>{{ $itemSet->transaction_date }}</td>
+                                        <td>{{ $itemSet->itemset }}</td>
                                     </tr>
                                 @endforeach
                             @endif
                         </tbody>
                     </table>
+
+                    <div class="d-flex justify-content-between">
+                        <p>Menampilkan {{ $transactionSets->firstItem() }} hingga {{ $transactionSets->lastItem() }} dari
+                            {{ $transactionSets->total() }} entri
+                        </p>
+
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-end">
+                                {{-- Previous Page Link --}}
+                                @if ($transactionSets->onFirstPage())
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                            href="{{ $transactionSets->appends(['per_page' => request('per_page')])->previousPageUrl() }}">Previous</a>
+                                    </li>
+                                @endif
+
+                                {{-- Pagination Links --}}
+                                @foreach ($transactionSets->links()->elements as $element)
+                                    {{-- Array Of Links --}}
+                                    @if (is_array($element))
+                                        @foreach ($element as $page => $url)
+                                            @if ($page == $transactionSets->currentPage())
+                                                <li class="page-item active" aria-current="page">
+                                                    <a class="page-link" href="#">{{ $page }}</a>
+                                                </li>
+                                            @else
+                                                <li class="page-item">
+                                                    <a class="page-link"
+                                                        href="{{ $transactionSets->appends(['per_page' => request('per_page')])->url($page) }}">{{ $page }}</a>
+                                                </li>
+                                            @endif
+                                        @endforeach
+                                    @endif
+                                @endforeach
+
+                                {{-- Next Page Link --}}
+                                @if ($transactionSets->hasMorePages())
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                            href="{{ $transactionSets->appends(['per_page' => request('per_page')])->nextPageUrl() }}">Next</a>
+                                    </li>
+                                @else
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#">Next</a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
 

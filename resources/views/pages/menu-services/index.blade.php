@@ -38,4 +38,18 @@
 
         </div>
     </section>
+
+    <script>
+        document.getElementById('menuSelectionForm').addEventListener('submit', function(event) {
+            // Check if any checkbox is checked
+            const checkboxes = document.querySelectorAll('input[name="selected_menus[]"]');
+            const isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+            // If no checkboxes are checked, prevent form submission and alert the user
+            if (!isChecked) {
+                event.preventDefault(); // Prevent the form from submitting
+                alert('Silakan pilih setidaknya satu menu.'); // Show alert message
+            }
+        });
+    </script>
 @endsection

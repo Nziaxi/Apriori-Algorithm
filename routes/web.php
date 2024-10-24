@@ -27,8 +27,7 @@ Route::get('/home', [HomeController::class, 'index'])->name('home.index');
 Route::resource('menus', MenuController::class);
 
 Route::get('/select-menu', [MenuServiceController::class, 'selectMenu'])->name('menu-services.index');
-Route::post('/validate-menu', [MenuServiceController::class, 'validateMenu']);
-Route::post('/submit-order', [MenuServiceController::class, 'submitOrder']);
+Route::post('/validate-menu', [MenuServiceController::class, 'validateMenu'])->name('validate.menu');
 Route::post('/confirm-order', [MenuServiceController::class, 'confirmOrder'])->name('confirm.order');
 
 Route::resource('transactions', TransactionController::class);

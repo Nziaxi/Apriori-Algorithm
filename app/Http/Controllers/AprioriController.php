@@ -6,18 +6,21 @@ use App\Models\Menu;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\AprioriResult;
+use App\Models\TransactionSet;
 
 class AprioriController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-         // Ambil semua transaksi
-         $transactions = Transaction::all();
+        TransactionSet::truncate();
 
-         // Gabungkan transaksi berdasarkan tanggal dan buat itemsets
-         $itemSets = $this->generateItemSets($transactions);
+        $transactions = Transaction::all();
+        $itemSets = $this->generateItemSets($transactions);
+    
+        $perPage = $request->get('per_page', 10);
+        $transactionSets = TransactionSet::paginate($perPage);
 
-        return view('pages.apriori.index', compact('itemSets'));
+        return view('pages.apriori.index', compact('transactionSets'));
     }
 
     public function process(Request $request)
@@ -34,7 +37,69 @@ class AprioriController extends Controller
         // Hitung support dan confidence
         $results = $this->apriori($itemSets, $minSupport, $minConfidence);
 
-        return view('pages.apriori.results', compact('results', 'itemSets'));
+        $results = AprioriResult::all();
+
+        // Organize results by itemset length
+        $organizedResults = [
+            '1-itemset' => [],
+            '2-itemsets' => [],
+            '3-itemsets' => [],
+            '4-itemsets' => [],
+        ];
+
+        foreach ($results as $result) {
+            $items = json_decode($result->items);
+            $itemCount = count($items);
+
+            // Group results based on itemset length
+            if ($itemCount == 1) {
+                $organizedResults['1-itemset'][] = [
+                    'itemset' => $items,
+                    'support' => $result->support,
+                ];
+            } elseif ($itemCount == 2) {
+                $organizedResults['2-itemsets'][] = [
+                    'itemset' => $items,
+                    'support' => $result->support,
+                    'confidence' => [
+                        [
+                            'confidence' => $result->confidence,
+                            'recommendation' => $result->recommendation,
+                        ],
+                    ],
+                    'lift' => $result->lift,
+                ];
+            } elseif ($itemCount == 3) {
+                $organizedResults['3-itemsets'][] = [
+                    'itemset' => $items,
+                    'support' => $result->support,
+                    'confidence' => [
+                        [
+                            'confidence' => $result->confidence,
+                            'recommendation' => $result->recommendation,
+                        ],
+                    ],
+                    'lift' => $result->lift,
+                ];
+            } elseif ($itemCount == 4) {
+                $organizedResults['4-itemsets'][] = [
+                    'itemset' => $items,
+                    'support' => $result->support,
+                    'confidence' => [
+                        [
+                            'confidence' => $result->confidence,
+                            'recommendation' => $result->recommendation,
+                        ],
+                    ],
+                    'lift' => $result->lift,
+                ];
+            }
+        }
+
+
+        return view('pages.apriori.results', [
+            'results' => $organizedResults,
+        ]);
     }
 
     private function generateItemSets($transactions)
@@ -47,6 +112,7 @@ class AprioriController extends Controller
         // Loop melalui setiap transaksi yang sudah dikelompokkan berdasarkan tanggal
         foreach ($groupedTransactions as $date => $transactionsOnDate) {
             $itemSet = [];
+            $itemName = [];
 
             // Loop melalui setiap transaksi pada tanggal tersebut
             foreach ($transactionsOnDate as $transaction) {
@@ -59,8 +125,19 @@ class AprioriController extends Controller
                             'name' => $menu->name,
                             'category' => $menu->category
                         ]; // Menyimpan nama dan kategori
+
+                        $itemName[] = $menu->name;
                     }
                 }
+            }
+
+            $itemSetString = implode(', ', $itemName);
+
+            if (!empty($itemSetString)) {
+                TransactionSet::create([
+                    'transaction_date' => $date,
+                    'itemset' => $itemSetString
+                ]);
             }
 
             // Simpan itemSet yang terbentuk untuk tanggal ini
@@ -102,7 +179,7 @@ class AprioriController extends Controller
     {
         $confidenceResults = [];
         $items = explode(',', $combo);
-
+        
         // Hitung confidence untuk setiap pasangan aturan
         if ($length == 2) {
             // Logika confidence untuk 2-itemset
@@ -112,9 +189,14 @@ class AprioriController extends Controller
                         $supportAB = isset($supportCounts2[$combo]) ? $supportCounts2[$combo] / $totalTransactions : 0;
                         $supportA = isset($supportCounts1[$itemA]) ? $supportCounts1[$itemA] / $totalTransactions : 1;
                         $confidence = $supportAB / $supportA;
+                        $confidence = ceil($confidence * 100) / 100;
 
                         if ($confidence >= $minConfidence) {
-                            $confidenceResults[] = "$itemB => $itemA: " . round($confidence, 2);
+                            $confidenceResults[] = [
+                                'items' => [$itemA, $itemB],
+                                'recommendation' => $itemB,
+                                'confidence' => $confidence
+                            ];
                         }
                     }
                 }
@@ -123,24 +205,44 @@ class AprioriController extends Controller
             // Logika confidence untuk 3-itemset
             foreach ($items as $itemA) {
                 $otherItems = array_diff($items, [$itemA]);
-                $supportABC = isset($supportCounts3[$combo]) ? $supportCounts3[$combo] / $totalTransactions : 0;
-                $supportA = isset($supportCounts1[$itemA]) ? $supportCounts1[$itemA] / $totalTransactions : 1;
-                $confidence = $supportABC / $supportA;
-    
-                if ($confidence >= $minConfidence) {
-                    $confidenceResults[] = implode(',', $otherItems) . " => $itemA" . ": " . round($confidence, 2);
+
+                if (count($otherItems) == 2) {
+                    $otherItemsKey = implode(',', $otherItems);
+                    $comboKey = implode(',', $items);
+            
+                    $supportABC = isset($supportCounts3[$comboKey]) ? $supportCounts3[$comboKey] / $totalTransactions : 0;
+                    $supportAB = isset($supportCounts2[$otherItemsKey]) ? $supportCounts2[$otherItemsKey] / $totalTransactions : 1;
+                    $confidence = $supportABC / $supportAB;
+        
+                    if ($confidence >= $minConfidence) {
+                        $confidenceResults[] = [
+                            'items' => array_merge($otherItems, [$itemA]),
+                            'recommendation' => $itemA,
+                            'confidence' => $confidence
+                        ];
+                    }
                 }
             }
         } elseif ($length == 4) {
             // Logika confidence untuk 4-itemset
             foreach ($items as $itemA) {
                 $otherItems = array_diff($items, [$itemA]);
-                $supportABCD = isset($supportCounts4[$combo]) ? $supportCounts4[$combo] / $totalTransactions : 0;
-                $supportA = isset($supportCounts1[$itemA]) ? $supportCounts1[$itemA] / $totalTransactions : 1;
-                $confidence = $supportABCD / $supportA;
-    
-                if ($confidence >= $minConfidence) {
-                    $confidenceResults[] = implode(',', $otherItems) . " => $itemA" . ": " . round($confidence, 2);
+
+                if (count($otherItems) == 3) {
+                    $otherItemsKey = implode(',', $otherItems);
+                    $comboKey = implode(',', $items);
+            
+                    $supportABCD = isset($supportCounts4[$comboKey]) ? $supportCounts4[$comboKey] / $totalTransactions : 0;
+                    $supportABC = isset($supportCounts3[$otherItemsKey]) ? $supportCounts3[$otherItemsKey] / $totalTransactions : 1;
+                    $confidence = $supportABCD / $supportABC;
+        
+                    if ($confidence >= $minConfidence) {
+                        $confidenceResults[] = [
+                            'items' => array_merge($otherItems, [$itemA]),
+                            'recommendation' => $itemA,
+                            'confidence' => $confidence
+                        ];
+                    }
                 }
             }
         }
@@ -158,6 +260,9 @@ class AprioriController extends Controller
 
         // Hitung support untuk 1-itemset
         $supportCounts1 = [];
+        $supportCounts2 = [];
+        $supportCounts3 = [];
+        $supportCounts4 = [];
         foreach ($itemSets as $itemSet) {
             foreach ($itemSet['items'] as $item) {
                 $itemName = $item['name'];
@@ -169,147 +274,103 @@ class AprioriController extends Controller
         }
 
         // Simpan hasil 1-itemset
-        $results['1-itemset'] = [];
         foreach ($supportCounts1 as $item => $count) {
             $support = $count / $totalTransactions;
-            $support = ceil($support * 10) / 10; // Bulatkan ke atas dengan 1 desimal
+            $support = ceil($support * 100) / 100; // Bulatkan ke atas dengan 1 desimal
             if ($support >= $minSupport) {
-                $result = [
-                    'itemset' => [$item],
-                    'support' => $support
-                ];
-    
-                $results['1-itemset'][] = $result;
-    
                 // Simpan hasil 1-itemset ke database
                 AprioriResult::create([
-                    'itemset' => json_encode([$item]),
+                    'items' => json_encode([$item]),
+                    'recommendation' => null,
                     'support' => $support,
-                    'confidence' => null
+                    'confidence' => null,
+                    'lift' => null
                 ]);
             }
         }
 
-        // Hitung support untuk 2-itemsets
-        $supportCounts2 = [];
-        foreach ($itemSets as $itemSet) {
-            $combos = $this->generateCombinations($itemSet['items'], 2);
-            foreach ($combos as $combo) {
-                // Hanya lanjutkan jika semua kategori berbeda
-                if ($this->isDifferentCategory($combo)) {
-                    $comboKey = implode(',', array_column($combo, 'name'));
-                    if (!isset($supportCounts2[$comboKey])) {
-                        $supportCounts2[$comboKey] = 0;
+        // Hitung support dan simpan hasil untuk 2-itemsets, 3-itemsets, dan 4-itemsets
+        for ($length = 2; $length <= 4; $length++) {
+            $supportCounts = [];
+            foreach ($itemSets as $itemSet) {
+                $combos = $this->generateCombinations($itemSet['items'], $length);
+                foreach ($combos as $combo) {
+                    if ($this->isDifferentCategory($combo)) {
+                        $comboKey = implode(',', array_column($combo, 'name'));
+                        if (!isset($supportCounts[$comboKey])) {
+                            $supportCounts[$comboKey] = 0;
+                        }
+                        $supportCounts[$comboKey]++;
                     }
-                    $supportCounts2[$comboKey]++;
                 }
             }
-        }
 
-        // Simpan hasil 2-itemsets
-        $results['2-itemsets'] = [];
-        foreach ($supportCounts2 as $combo => $count) {
-            $support = $count / $totalTransactions;
-            $support = ceil($support * 10) / 10; // Bulatkan ke atas dengan 1 desimal
-            if ($support >= $minSupport) {
-                $confidence = $this->calculateConfidence($combo, $supportCounts1, $supportCounts2, [], [], $totalTransactions, $minConfidence, 2);
-
-                $result = [
-                    'itemset' => explode(',', $combo),
-                    'support' => $support,
-                    'confidence' => $confidence
-                ];
-
-                $results['2-itemsets'][] = $result;
-
-                // Simpan hasil 2-itemset ke database
-                AprioriResult::create([
-                    'itemset' => json_encode(explode(',', $combo)),
-                    'support' => $support,
-                    'confidence' => json_encode($confidence)
-                ]);
-            }
-        }
-
-        // Hitung support untuk 3-itemsets
-        $supportCounts3 = [];
-        foreach ($itemSets as $itemSet) {
-            $combos = $this->generateCombinations($itemSet['items'], 3);
-            foreach ($combos as $combo) {
-                // Hanya lanjutkan jika semua kategori berbeda
-                if ($this->isDifferentCategory($combo)) {
-                    $comboKey = implode(',', array_column($combo, 'name'));
-                    if (!isset($supportCounts3[$comboKey])) {
-                        $supportCounts3[$comboKey] = 0;
+            // Simpan hasil untuk itemsets sesuai panjang
+            foreach ($supportCounts as $combo => $count) {
+                $support = $count / $totalTransactions;
+                $support = ceil($support * 100) / 100;
+                if ($support >= $minSupport) {
+                    // Hitung confidence
+                    if ($length == 2) {
+                        $confidenceResults = $this->calculateConfidence(
+                            $combo,
+                            $supportCounts1,
+                            $supportCounts,
+                            [],
+                            [],
+                            $totalTransactions,
+                            $minConfidence,
+                            $length
+                        );
+                    } elseif ($length == 3) {
+                        $confidenceResults = $this->calculateConfidence(
+                            $combo,
+                            $supportCounts1,
+                            $supportCounts2,
+                            $supportCounts,
+                            [],
+                            $totalTransactions,
+                            $minConfidence,
+                            $length
+                        );
+                    } elseif ($length == 4) {
+                        $confidenceResults = $this->calculateConfidence(
+                            $combo,
+                            $supportCounts1,
+                            $supportCounts2,
+                            $supportCounts3,
+                            $supportCounts,
+                            $totalTransactions,
+                            $minConfidence,
+                            $length
+                        );
                     }
-                    $supportCounts3[$comboKey]++;
+                    
+                    // Simpan hasil ke database dan hitung lift
+                    foreach ($confidenceResults as $result) {
+                        $items = is_array($result['items']) ? $result['items'] : json_decode($result['items'], true);
+                        
+                        $antecedentItems = $items;
+                        $antecedentCount = count($antecedentItems);
+                    
+                        if ($antecedentCount > 1) {
+                            $firstItem = $antecedentItems[0];
+                            $secondItem = $antecedentItems[1];
+                    
+                            $supportB = isset($supportCounts1[$secondItem]) ? $supportCounts1[$secondItem] / $totalTransactions : 0;
+                    
+                            $lift = $supportB > 0 ? ($result['confidence'] / $supportB) : 0;
+                            
+                            AprioriResult::create([
+                                'items' => json_encode($items),
+                                'recommendation' => $result['recommendation'],
+                                'confidence' => $result['confidence'],
+                                'support' => $support,
+                                'lift' => $lift
+                            ]);
+                        }
+                    }                    
                 }
-            }
-        }
-
-        // Simpan hasil 3-itemsets
-        $results['3-itemsets'] = [];
-        foreach ($supportCounts3 as $combo => $count) {
-            $support = $count / $totalTransactions;
-            $support = ceil($support * 10) / 10; // Bulatkan ke atas dengan 1 desimal
-            if ($support >= $minSupport) {
-                $confidence = $this->calculateConfidence($combo, $supportCounts1, $supportCounts2, $supportCounts3, [], $totalTransactions, $minConfidence, 3);
-
-                $result = [
-                    'itemset' => explode(',', $combo),
-                    'support' => $support,
-                    'confidence' => $confidence
-                ];
-
-                $results['3-itemsets'][] = $result;
-
-                // Simpan hasil 3-itemset ke database
-                AprioriResult::create([
-                    'itemset' => json_encode(explode(',', $combo)),
-                    'support' => $support,
-                    'confidence' => json_encode($confidence)
-                ]);
-            }
-        }
-
-        // Hitung support untuk 4-itemsets
-        $supportCounts4 = [];
-        foreach ($itemSets as $itemSet) {
-            $combos = $this->generateCombinations($itemSet['items'], 4);
-            foreach ($combos as $combo) {
-                // Hanya lanjutkan jika semua kategori berbeda
-                if ($this->isDifferentCategory($combo)) {
-                    $comboKey = implode(',', array_column($combo, 'name'));
-                    if (!isset($supportCounts4[$comboKey])) {
-                        $supportCounts4[$comboKey] = 0;
-                    }
-                    $supportCounts4[$comboKey]++;
-                }
-            }
-        }
-
-        // Simpan hasil 4-itemsets
-        $results['4-itemsets'] = [];
-        foreach ($supportCounts4 as $combo => $count) {
-            $support = $count / $totalTransactions;
-            $support = ceil($support * 10) / 10; // Bulatkan ke atas dengan 1 desimal
-            if ($support >= $minSupport) {
-                $confidence = $this->calculateConfidence($combo, $supportCounts1, $supportCounts2, $supportCounts3, $supportCounts4, $totalTransactions, $minConfidence, 4);
-
-                $result = [
-                    'itemset' => explode(',', $combo),
-                    'support' => $support,
-                    'confidence' => $confidence
-                ];
-
-                $results['4-itemsets'][] = $result;
-
-                // Simpan hasil 4-itemset ke database
-                AprioriResult::create([
-                    'itemset' => json_encode(explode(',', $combo)),
-                    'support' => $support,
-                    'confidence' => json_encode($confidence)
-                ]);
             }
         }
 

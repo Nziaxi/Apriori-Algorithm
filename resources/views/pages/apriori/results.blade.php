@@ -15,35 +15,6 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Data Transaksi</h5>
-
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th scope="col">Tanggal Transaksi</th>
-                                <th scope="col">Itemset</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (empty($itemSets))
-                                <tr>
-                                    <td colspan="2" class="text-center">Data tidak ditemukan.</td>
-                                </tr>
-                            @else
-                                @foreach ($itemSets as $index => $itemSet)
-                                    <tr>
-                                        <td>{{ $itemSet['date'] }}</td>
-                                        <td>{{ implode(', ', array_column($itemSet['items'], 'name')) }}</td>
-                                    </tr>
-                                @endforeach
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-body">
                     <h5 class="card-title">1-Itemsets</h5>
 
                     <table class="table table-bordered">
@@ -57,7 +28,7 @@
                             @foreach ($results['1-itemset'] as $itemset)
                                 <tr>
                                     <td>{{ implode(', ', $itemset['itemset']) }}</td>
-                                    <td>{{ $itemset['support'] }}</td>
+                                    <td>{{ number_format($itemset['support'], 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -75,16 +46,22 @@
                                 <th scope="col">Itemset</th>
                                 <th scope="col">Support</th>
                                 <th scope="col">Confidence</th>
+                                <th scope="col">Recommendation</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($results['2-itemsets'] as $itemset)
                                 <tr>
                                     <td>{{ implode(', ', $itemset['itemset']) }}</td>
-                                    <td>{{ $itemset['support'] }}</td>
+                                    <td>{{ number_format($itemset['support'], 2) }}</td>
                                     <td>
                                         @foreach ($itemset['confidence'] as $conf)
-                                            {{ $conf }} <br>
+                                            {{ number_format($conf['confidence'], 2) }} <br>
+                                        @endforeach
+                                    </td>
+                                    <td>
+                                        @foreach ($itemset['confidence'] as $conf)
+                                            {{ $conf['recommendation'] }} <br>
                                         @endforeach
                                     </td>
                                 </tr>
@@ -104,16 +81,22 @@
                                 <th scope="col">Itemset</th>
                                 <th scope="col">Support</th>
                                 <th scope="col">Confidence</th>
+                                <th scope="col">Recommendation</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($results['3-itemsets'] as $itemset)
                                 <tr>
                                     <td>{{ implode(', ', $itemset['itemset']) }}</td>
-                                    <td>{{ $itemset['support'] }}</td>
+                                    <td>{{ number_format($itemset['support'], 2) }}</td>
                                     <td>
                                         @foreach ($itemset['confidence'] as $conf)
-                                            {{ $conf }} <br>
+                                            {{ number_format($conf['confidence'], 2) }} <br>
+                                        @endforeach
+                                    </td>
+                                    <td>
+                                        @foreach ($itemset['confidence'] as $conf)
+                                            {{ $conf['recommendation'] }} <br>
                                         @endforeach
                                     </td>
                                 </tr>
@@ -133,16 +116,22 @@
                                 <th scope="col">Itemset</th>
                                 <th scope="col">Support</th>
                                 <th scope="col">Confidence</th>
+                                <th scope="col">Recommendation</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($results['4-itemsets'] as $itemset)
                                 <tr>
                                     <td>{{ implode(', ', $itemset['itemset']) }}</td>
-                                    <td>{{ $itemset['support'] }}</td>
+                                    <td>{{ number_format($itemset['support'], 2) }}</td>
                                     <td>
                                         @foreach ($itemset['confidence'] as $conf)
-                                            {{ $conf }} <br>
+                                            {{ number_format($conf['confidence'], 2) }} <br>
+                                        @endforeach
+                                    </td>
+                                    <td>
+                                        @foreach ($itemset['confidence'] as $conf)
+                                            {{ $conf['recommendation'] }} <br>
                                         @endforeach
                                     </td>
                                 </tr>

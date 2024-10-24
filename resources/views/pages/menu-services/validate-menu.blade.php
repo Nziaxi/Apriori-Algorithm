@@ -39,9 +39,10 @@
                                     @foreach ($recommendations as $recommended)
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="recommended_menus[]"
-                                                value="{{ $recommended }}">
+                                                value="{{ $recommended['name'] }}">
                                             <label class="form-check-label">
-                                                {{ $recommended }}
+                                                {{ $recommended['name'] }} - Confidence:
+                                                {{ number_format($recommended['confidence'], 0) }}%
                                             </label>
                                         </div>
                                     @endforeach

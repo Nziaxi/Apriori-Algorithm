@@ -35,7 +35,7 @@
 
         <li class="nav-heading">Generate</li>
         <li class="nav-item">
-            <a class="nav-link {{ Route::currentRouteName() == 'apriori.index' ? 'active' : 'collapsed' }}"
+            <a class="nav-link {{ request()->is('apriori') ? 'active' : 'collapsed' }}"
                 href="{{ route('apriori.index') }}">
                 <i class="ri-ai-generate"></i>
                 <span>Paket Menu</span>
@@ -44,7 +44,7 @@
 
         <li class="nav-heading">Layanan</li>
         <li class="nav-item">
-            <a class="nav-link {{ Route::currentRouteName() == 'menu-services.index' ? 'active' : 'collapsed' }}"
+            <a class="nav-link {{ in_array(Route::currentRouteName(), ['menu-services.index', 'validate.menu', 'confirm.order']) ? 'active' : 'collapsed' }}"
                 href="{{ route('menu-services.index') }}">
                 <i class="ri-survey-line"></i>
                 <span>Pilih Menu</span>

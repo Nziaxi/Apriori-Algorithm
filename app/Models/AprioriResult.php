@@ -9,11 +9,20 @@ class AprioriResult extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['itemset', 'support', 'confidence'];
+    protected $table = 'apriori_results';
+
+    protected $fillable = [
+        'items',
+        'recommendation',
+        'support',
+        'confidence',
+        'lift'
+    ];
     
     protected $casts = [
-        'itemset' => 'array',
-        'support' => 'float',
-        'confidence' => 'array',
+        'items' => 'array',
+        'support' => 'decimal:4',
+        'confidence' => 'decimal:4',
+        'lift' => 'decimal:4'
     ];
 }

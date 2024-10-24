@@ -18,6 +18,14 @@ class MenuServiceController extends Controller
     // Validasi menu yang dipilih
     public function validateMenu(Request $request)
     {
+        $request->validate([
+            'selected_menus' => 'required|array|min:1',
+            'selected_menus.*' => 'string',
+        ], [
+            'selected_menus.required' => 'Silakan pilih setidaknya satu menu.',
+            'selected_menus.min' => 'Silakan pilih setidaknya satu menu.',
+        ]);
+
         // Ambil menu yang dipilih
         $selectedMenus = $request->input('selected_menus');
         
@@ -33,7 +41,7 @@ class MenuServiceController extends Controller
         // Perulangan melalui setiap hasil Apriori
         foreach ($aprioriResults as $result) {
             // Ambil itemset dari hasil dan ubah ke dalam array
-            $itemset = json_decode($result->itemset, true); // Decode JSON ke array
+            $itemset = json_decode($result->items, true); // Decode JSON ke array
             
             // Cek apakah ada item dalam itemset yang cocok dengan menu yang dipilih
             if (array_intersect($selectedMenus, $itemset)) {
@@ -44,13 +52,21 @@ class MenuServiceController extends Controller
                 foreach ($recommendedItems as $item) {
                     $menuItem = Menu::where('name', $item)->first();
                     
-                    if ($menuItem && !in_array($menuItem->category, $selectedCategories) && !in_array($item, $recommendations)) {
+                    if ($menuItem && !in_array($menuItem->category, $selectedCategories) && !in_array($item, array_column($recommendations, 'name'))) {
                         // Pastikan item dari kategori yang berbeda dan tidak duplikat
-                        $recommendations[] = $item;
+                        $recommendations[] = [
+                            'name' => $item,
+                            'confidence' => $result->confidence * 100, // Ambil nilai confidence dari hasil Apriori
+                        ];
                     }
                 }
             }
         }
+
+        // Urutkan rekomendasi berdasarkan confidence dari terbesar ke terkecil
+        usort($recommendations, function ($a, $b) {
+            return $b['confidence'] <=> $a['confidence'];
+        });
 
         return view('pages.menu-services.validate-menu', compact('selectedMenus', 'recommendations'));
     }

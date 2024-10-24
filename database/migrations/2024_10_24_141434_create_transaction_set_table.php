@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('apriori_results', function (Blueprint $table) {
+        Schema::create('transaction_set', function (Blueprint $table) {
             $table->id();
-            $table->json('itemset');
-            $table->decimal('support', 5, 2);
-            $table->json('confidence')->nullable();
+            $table->date('transaction_date');
+            $table->text('itemset');
             $table->timestamps();
         });
     }
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('apriori_results');
+        Schema::dropIfExists('transaction_set');
     }
 };
