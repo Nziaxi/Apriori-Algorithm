@@ -9,12 +9,11 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    // Kolom-kolom yang bisa diisi (mass assignable)
     protected $fillable = [
-        'transaction_date', // Tanggal transaksi
-        'menu_code',        // Kode menu
-        'quantity',         // Kuantitas
-        'total_price',      // Total harga
+        'transaction_date',
+        'menu_code',
+        'quantity',
+        'total_price',
     ];
 
     // Mendefinisikan relasi dengan model Menu

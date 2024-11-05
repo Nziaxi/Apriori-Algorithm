@@ -144,7 +144,7 @@
                                         <td>{{ $transaction->menu_code }}</td>
                                         <td>{{ $transaction->menu->name }}</td>
                                         <td>{{ $transaction->quantity }}</td>
-                                        <td>Rp{{ number_format($transaction->total_price, 2) }}</td>
+                                        <td>Rp{{ number_format($transaction->total_price, 0, ',', '.') }}</td>
                                         <td>
                                             <a href="{{ route('transactions.edit', $transaction->id) }}"
                                                 class="btn btn-warning">Edit</a>

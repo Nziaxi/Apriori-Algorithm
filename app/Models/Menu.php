@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Menu extends Model
 {
     use HasFactory;
 
-    // Kolom-kolom yang bisa diisi (mass assignable)
     protected $fillable = [
-        'code',      // Kode Menu
-        'name',      // Nama Menu
-        'category',  // Kategori Menu (makanan utama, minuman, snack, dessert)
+        'code',
+        'name',
+        'category',
+        'image',
+        'price',
     ];
 }

@@ -17,14 +17,21 @@
 
                     <h5 class="card-title">Pesanan Anda:</h5>
                     <ul>
-                        @foreach (session('order') as $menu)
-                            <li>{{ $menu }}</li>
-                        @endforeach
+                        @if (session('order'))
+                            @foreach (session('order') as $menu)
+                                <li>{{ $menu['name'] }} - Jumlah: {{ $menu['quantity'] }}</li>
+                            @endforeach
+                        @else
+                            <li>Tidak ada pesanan yang ditemukan.</li>
+                        @endif
                     </ul>
 
-                    <div class="text-center">
-                        <button type="button" class="btn btn-primary" id="confirmOrderButton">Pesan</button>
-                    </div>
+                    <form action="{{ route('store.order') }}" method="POST" id="orderForm">
+                        @csrf
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary" id="confirmOrderButton">Pesan</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -48,16 +55,16 @@
     </div>
 
     <script>
-        document.getElementById('confirmOrderButton').addEventListener('click', function() {
+        document.getElementById('orderForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form from submitting immediately
+
             // Show the order confirmation modal
             var modal = new bootstrap.Modal(document.getElementById('orderConfirmationModal'));
             modal.show();
 
-            // Redirect to the menu selection page after a delay
+            // Wait for a moment, then submit the form
             setTimeout(function() {
-                modal.hide(); // Optionally hide the modal before redirecting
-                window.location.href =
-                    "{{ route('menu-services.index') }}"; // Redirect to the menu selection page
+                document.getElementById('orderForm').submit();
             }, 2000); // 2000 milliseconds = 2 seconds
         });
     </script>

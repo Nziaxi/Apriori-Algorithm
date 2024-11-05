@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('apriori_results', function (Blueprint $table) {
             $table->id();
             $table->json('items');
+            $table->json('pick_items')->nullable();
             $table->string('recommendation')->nullable();
             $table->decimal('support', 8, 2);
             $table->decimal('confidence', 8, 2)->nullable();

@@ -35,6 +35,7 @@ class MenuController extends Controller
             'code' => 'required|unique:menus|max:10',
             'name' => 'required|max:255',
             'category' => 'required|max:50',
+            'price' => 'required|numeric|min:0',
         ]);
 
         Menu::create($request->all());
@@ -60,6 +61,7 @@ class MenuController extends Controller
             'code' => 'required|max:10|unique:menus,code,' . $id,
             'name' => 'required|max:255',
             'category' => 'required|max:50',
+            'price' => 'required|numeric|min:0',
         ]);
 
         $menu = Menu::findOrFail($id);

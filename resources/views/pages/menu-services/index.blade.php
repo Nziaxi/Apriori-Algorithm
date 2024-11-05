@@ -10,46 +10,90 @@
 
 @section('content')
     <section class="section">
-        <div class="row d-flex justify-content-center align-items-center">
+        <form action="/validate-menu" method="POST">
+            @csrf
+            <div class="row">
+                @foreach ($menus as $menu)
+                    <div class="col-md-4">
+                        <div class="card">
+                            {{-- <img src="{{ $menu->image }}" class="card-img-top" alt="{{ $menu->name }}"> --}}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ $menu->name }}</h5>
+                                <p class="card-text">Rp{{ number_format($menu->price, 0, ',', '.') }}</p>
 
-            <div class="card w-75">
-                <div class="card-body">
-                    <form action="/validate-menu" method="POST">
-                        @csrf
-                        <h5 class="card-title">Pilih Menu</h5>
-                        <div class="row">
-                            @foreach ($menus as $menu)
-                                <div class="col-4 form-check">
-                                    <input class="form-check-input" type="checkbox" name="selected_menus[]"
-                                        value="{{ $menu->name }}">
-                                    <label class="form-check-label">
-                                        {{ $menu->name }}
-                                    </label>
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <div id="counter-{{ $menu->id }}" class="d-none align-items-center">
+                                        <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="decrement('{{ $menu->id }}')">-</button>
+                                        <span id="quantity-{{ $menu->id }}" class="mx-2">1</span>
+                                        <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="increment('{{ $menu->id }}')">+</button>
+                                    </div>
+                                    <button type="button" class="btn btn-success btn-add ms-auto"
+                                        data-menu-id="{{ $menu->id }}">
+                                        Tambah
+                                    </button>
+                                    <input type="hidden" class="menu-quantity" name="selected_menus[{{ $menu->name }}]"
+                                        value="0" id="input-quantity-{{ $menu->id }}">
                                 </div>
-                            @endforeach
+                            </div>
                         </div>
-
-                        <div class="text-center mt-4">
-                            <button type="submit" class="btn btn-primary">Lanjutkan</button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                @endforeach
             </div>
 
-        </div>
+            <!-- Floating Button Container -->
+            <div id="continue-button" class="fixed-bottom bg-light py-2 text-center d-none">
+                <button type="submit" class="btn btn-primary">Lanjutkan</button>
+            </div>
+        </form>
     </section>
 
     <script>
-        document.getElementById('menuSelectionForm').addEventListener('submit', function(event) {
-            // Check if any checkbox is checked
-            const checkboxes = document.querySelectorAll('input[name="selected_menus[]"]');
-            const isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+        // Show/Hide the continue button based on item selection
+        function updateContinueButtonVisibility() {
+            const quantities = document.querySelectorAll('.menu-quantity');
+            const isAnySelected = Array.from(quantities).some(input => parseInt(input.value) > 0);
+            const continueButton = document.getElementById('continue-button');
+            continueButton.classList.toggle('d-none', !isAnySelected);
+        }
 
-            // If no checkboxes are checked, prevent form submission and alert the user
-            if (!isChecked) {
-                event.preventDefault(); // Prevent the form from submitting
-                alert('Silakan pilih setidaknya satu menu.'); // Show alert message
-            }
+        // Show/Hide the counter based on button 'Tambah' is clicked
+        document.querySelectorAll('.btn-add').forEach(button => {
+            button.addEventListener('click', function() {
+                const menuId = this.getAttribute('data-menu-id');
+                document.getElementById(`counter-${menuId}`).classList.remove('d-none');
+                this.classList.add('d-none');
+                document.getElementById(`input-quantity-${menuId}`).value = 1;
+                document.getElementById(`quantity-${menuId}`).textContent = 1;
+                updateContinueButtonVisibility();
+            });
         });
+
+        // Increment quantity
+        function increment(menuId) {
+            const quantityElem = document.getElementById(`quantity-${menuId}`);
+            let quantity = parseInt(quantityElem.textContent);
+            quantity++;
+            quantityElem.textContent = quantity;
+            document.getElementById(`input-quantity-${menuId}`).value = quantity;
+            updateContinueButtonVisibility();
+        }
+
+        // Decrement quantity
+        function decrement(menuId) {
+            const quantityElem = document.getElementById(`quantity-${menuId}`);
+            let quantity = parseInt(quantityElem.textContent);
+            if (quantity > 1) {
+                quantity--;
+                quantityElem.textContent = quantity;
+                document.getElementById(`input-quantity-${menuId}`).value = quantity;
+            } else {
+                document.getElementById(`counter-${menuId}`).classList.add('d-none');
+                document.querySelector(`[data-menu-id="${menuId}"]`).classList.remove('d-none');
+                document.getElementById(`input-quantity-${menuId}`).value = 0;
+            }
+            updateContinueButtonVisibility();
+        }
     </script>
 @endsection

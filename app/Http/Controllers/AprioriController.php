@@ -105,6 +105,7 @@ class AprioriController extends Controller
     private function generateItemSets($transactions)
     {
         $itemSets = [];
+        TransactionSet::truncate();
 
         // Gabungkan transaksi berdasarkan tanggal
         $groupedTransactions = $transactions->groupBy('transaction_date');
@@ -194,6 +195,7 @@ class AprioriController extends Controller
                         if ($confidence >= $minConfidence) {
                             $confidenceResults[] = [
                                 'items' => [$itemA, $itemB],
+                                'pick_items' => [$itemA],
                                 'recommendation' => $itemB,
                                 'confidence' => $confidence
                             ];
@@ -217,6 +219,7 @@ class AprioriController extends Controller
                     if ($confidence >= $minConfidence) {
                         $confidenceResults[] = [
                             'items' => array_merge($otherItems, [$itemA]),
+                            'pick_items' => array_values($otherItems),
                             'recommendation' => $itemA,
                             'confidence' => $confidence
                         ];
@@ -239,6 +242,7 @@ class AprioriController extends Controller
                     if ($confidence >= $minConfidence) {
                         $confidenceResults[] = [
                             'items' => array_merge($otherItems, [$itemA]),
+                            'pick_items' => array_values($otherItems),
                             'recommendation' => $itemA,
                             'confidence' => $confidence
                         ];
@@ -276,11 +280,12 @@ class AprioriController extends Controller
         // Simpan hasil 1-itemset
         foreach ($supportCounts1 as $item => $count) {
             $support = $count / $totalTransactions;
-            $support = ceil($support * 100) / 100; // Bulatkan ke atas dengan 1 desimal
+            $support = ceil($support * 100) / 100; // Bulatkan ke atas dengan 2 desimal
             if ($support >= $minSupport) {
                 // Simpan hasil 1-itemset ke database
                 AprioriResult::create([
                     'items' => json_encode([$item]),
+                    'pick_items' => null,
                     'recommendation' => null,
                     'support' => $support,
                     'confidence' => null,
@@ -304,7 +309,7 @@ class AprioriController extends Controller
                     }
                 }
             }
-
+            
             // Simpan hasil untuk itemsets sesuai panjang
             foreach ($supportCounts as $combo => $count) {
                 $support = $count / $totalTransactions;
@@ -352,17 +357,18 @@ class AprioriController extends Controller
                         
                         $antecedentItems = $items;
                         $antecedentCount = count($antecedentItems);
-                    
+                        
                         if ($antecedentCount > 1) {
                             $firstItem = $antecedentItems[0];
                             $secondItem = $antecedentItems[1];
-                    
+                            
                             $supportB = isset($supportCounts1[$secondItem]) ? $supportCounts1[$secondItem] / $totalTransactions : 0;
                     
                             $lift = $supportB > 0 ? ($result['confidence'] / $supportB) : 0;
                             
                             AprioriResult::create([
                                 'items' => json_encode($items),
+                                'pick_items' => json_encode($result['pick_items']),
                                 'recommendation' => $result['recommendation'],
                                 'confidence' => $result['confidence'],
                                 'support' => $support,

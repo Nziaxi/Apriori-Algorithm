@@ -55,6 +55,16 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="row mb-3">
+                            <label for="price" class="col-sm-2 col-form-label">Harga</label>
+                            <div class="col-sm-10">
+                                <input type="number" name="price" class="form-control" id="price"
+                                    placeholder="Masukkan Harga" value="{{ $menu->price }}">
+                                @error('price')
+                                    <span class="text-danger">Harga harus diisi.</span>
+                                @enderror
+                            </div>
+                        </div>
                         <div class="text-center">
                             <button type="submit" class="btn btn-primary">
                                 Perbarui</button>

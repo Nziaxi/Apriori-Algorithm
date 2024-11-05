@@ -78,7 +78,40 @@
                                         </a>
                                     </div>
                                 </th>
-                                <th scope="col">Kategori</th>
+                                <th scope="col">
+                                    <div class="d-flex justify-content-between">
+                                        Kategori
+                                        <a style="color: black;"
+                                            href="{{ route('menus.index', ['sort_by' => 'category', 'sort_direction' => $sortColumn === 'category' && $sortDirection === 'asc' ? 'desc' : 'asc', 'per_page' => request('per_page')]) }}">
+                                            @if ($sortColumn === 'category')
+                                                @if ($sortDirection === 'asc')
+                                                    <i class="ri-sort-asc"></i>
+                                                @else
+                                                    <i class="ri-sort-desc"></i>
+                                                @endif
+                                            @else
+                                                <i class="ri-sort-asc"></i>
+                                            @endif
+                                        </a>
+                                    </div>
+                                </th>
+                                <th scope="col">
+                                    <div class="d-flex justify-content-between">
+                                        Harga
+                                        <a style="color: black;"
+                                            href="{{ route('menus.index', ['sort_by' => 'price', 'sort_direction' => $sortColumn === 'price' && $sortDirection === 'asc' ? 'desc' : 'asc', 'per_page' => request('per_page')]) }}">
+                                            @if ($sortColumn === 'price')
+                                                @if ($sortDirection === 'asc')
+                                                    <i class="ri-sort-asc"></i>
+                                                @else
+                                                    <i class="ri-sort-desc"></i>
+                                                @endif
+                                            @else
+                                                <i class="ri-sort-asc"></i>
+                                            @endif
+                                        </a>
+                                    </div>
+                                </th>
                                 <th scope="col">Aksi</th>
                             </tr>
                         </thead>
@@ -93,6 +126,7 @@
                                         <td>{{ $menu->code }}</td>
                                         <td>{{ $menu->name }}</td>
                                         <td>{{ $menu->category }}</td>
+                                        <td>Rp{{ number_format($menu->price, 0, ',', '.') }}</td>
                                         <td>
                                             <a href="{{ route('menus.edit', $menu->id) }}" class="btn btn-warning">Edit</a>
                                             <button type="button" class="btn btn-danger" data-bs-toggle="modal"

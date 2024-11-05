@@ -13,6 +13,7 @@ class AprioriResult extends Model
 
     protected $fillable = [
         'items',
+        'pick_items',
         'recommendation',
         'support',
         'confidence',
@@ -21,6 +22,7 @@ class AprioriResult extends Model
     
     protected $casts = [
         'items' => 'array',
+        'pick_items' => 'array',
         'support' => 'decimal:4',
         'confidence' => 'decimal:4',
         'lift' => 'decimal:4'

@@ -44,7 +44,7 @@
 
         <li class="nav-heading">Layanan</li>
         <li class="nav-item">
-            <a class="nav-link {{ in_array(Route::currentRouteName(), ['menu-services.index', 'validate.menu', 'confirm.order']) ? 'active' : 'collapsed' }}"
+            <a class="nav-link {{ in_array(Route::currentRouteName(), ['menu-services.index', 'validate.menu', 'confirm.order', 'show.invoice']) ? 'active' : 'collapsed' }}"
                 href="{{ route('menu-services.index') }}">
                 <i class="ri-survey-line"></i>
                 <span>Pilih Menu</span>
